@@ -1,0 +1,51 @@
+{% extends "student/base.html" %}
+{% load static %}
+{% block content %}
+
+<main id="main" class="main">
+
+  <div class="d-flex" style="justify-content: space-between;">
+    <div class="pagetitle">
+      <h1>Marks of {{class_obj.class_name}} Class</h1>
+    </div>
+  </div>
+
+  <section class="section">
+    <div class="row">
+      <div class="col-lg-12">
+        <div class="card">
+          <div class="card-body pt-4">
+            <h5 class="card-title">Marks Details</h5>
+
+            <table class="table">
+              <thead>
+                <tr>
+                  <th>Subject</th>
+                  <th>Marks Obtained</th>
+                  <th>Max Marks</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for mark in student_marks %}
+                  <tr>
+                    <td>{{ mark.subject_id.name }}</td>
+                    <td>{{ mark.marks_obtained }}</td>
+                    <td>{{ mark.max_marks }}</td>
+                  </tr>
+                {% empty %}
+                  <tr>
+                    <td colspan="4">No marks found for this student.</td>
+                  </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+{% endblock %}

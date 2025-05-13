@@ -1,0 +1,40 @@
+{% extends "student/base.html" %}
+{% load static %}
+{% block content %}
+
+<main id="main" class="main">
+
+  <div class="d-flex" style="justify-content: space-between;">
+    <div class="pagetitle">
+      <h1>Report Card</h1>
+    </div>
+  </div>
+
+  <section class="section">
+    <div class="row">
+      <div class="col-lg-12">
+        <div class="card">
+          <div class="card-body pt-4">
+            <h5 class="card-title">Report Card for {{ student.name }}</h5>
+            {% if report_card %}
+                <p><strong>Total Marks:</strong> {{ report_card.total_marks }}</p>
+                <p><strong>Obtained Marks:</strong> {{ report_card.obtained_marks_total }}</p>
+                <p><strong>Overall Grade:</strong> {{ report_card.overall_grade }}</p>
+                <p><strong>Percentage:</strong> {{ report_card.percentage }}%</p>
+
+                {% if report_card.pdf_url %}
+                <a href="{% url 'download_marksheet' report_card.id %}" class="btn btn-primary">Download Marksheet</a>
+                {% else %}
+                <p>No marksheet available for download.</p>
+                {% endif %}
+            {% else %}
+              <p class="text-danger">Report card has not been generated yet.</p>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+</main>
+{% endblock %}

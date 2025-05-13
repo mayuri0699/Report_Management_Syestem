@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <style>
+        body { font-family: Arial, sans-serif; }
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+        th, td { border: 1px solid #000; padding: 8px; text-align: center; }
+        .footer { margin-top: 40px; text-align: right; font-size: 0.8em; }
+    </style>
+</head>
+<body>
+    <h2 style="text-align:center;">
+        <!-- <img src="{{ STATIC_URL }}school_logo.png" alt="Logo" height="50"> <br> -->
+        K K Junior Collage Sakoli
+    </h2>
+
+    <h3>Student Report Card</h3>
+    <p><strong>Name:</strong> {{ student.name }}</p>
+    <p><strong>Roll Number:</strong> {{ student.roll_number }}</p>
+    <p><strong>Class:</strong> {{ class_obj.class_name }}</p>
+
+    <table>
+        <thead>
+            <tr>
+                <th>Subject Name</th>
+                <th>Marks Obtained</th>
+                <th>Max Marks</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for mark in marks_qs %}
+            <tr>
+                <td>{{ mark.subject_id.name }}</td>
+                <td>{{ mark.marks_obtained }}</td>
+                <td>{{ mark.max_marks }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <h4>Total: {{ total }} / {{ total_max }} | Grade: {{ grade }} | Percentage: {{ percentage }}%</h4>
+
+    <p class="footer">
+        ________________________<br>
+        Teacher/Principal Signature<br><br>
+        Generated on: {{ timestamp|date:"Y-m-d H:i" }}
+    </p>
+</body>
+</html>
