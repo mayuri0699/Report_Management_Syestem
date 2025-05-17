@@ -25,8 +25,8 @@ def student_marks(request):
 
 
 def student_report_card(request):
-    student = request.user  # Assuming the logged-in user is the student
-    report_card = ReportCard.objects.filter(student_id=student).first()  # Get report card for the logged-in student
+    student = request.user  
+    report_card = ReportCard.objects.filter(student_id=student).first()  
 
     context = {
         'student': student,
@@ -38,8 +38,7 @@ def student_report_card(request):
 def download_marksheet(request, report_card_id):
     report_card = get_object_or_404(ReportCard, id=report_card_id)
 
-    # You can customize the file download logic based on your requirements
-    file_path = report_card.pdf_url.path  # Get the path of the PDF file
+    file_path = report_card.pdf_url.path  
 
     with open(file_path, 'rb') as pdf:
         response = HttpResponse(pdf.read(), content_type='application/pdf')

@@ -91,7 +91,6 @@ def editstudent(request, class_id, student_id):
         email = request.POST.get('email')
         roll_number = request.POST.get('roll_number')
 
-        # Check for uniqueness on email and roll number (optional)
         if UserAuth.objects.exclude(id=student.id).filter(email=email).exists():
             messages.error(request, "Email already exists.")
         elif UserAuth.objects.exclude(id=student.id).filter(roll_number=roll_number).exists():
@@ -156,10 +155,8 @@ def studentmarkadd(request, id):
     class_subjects = ClassSubject.objects.filter(class_id=class_obj)
     existing_marks_qs = StudentMarks.objects.filter(student_id=student)
 
-    # Create a dictionary for quick lookup
     marks_qs = {mark.subject_id.id: mark for mark in existing_marks_qs}
 
-    # Create list with subject + marks info
     subjects_with_marks = []
     for cs in class_subjects:
         mark = marks_qs.get(cs.subject_id.id)
@@ -199,7 +196,7 @@ def studentmarkadd(request, id):
 
         grade = calculate_grade(average)
 
-        # ✅ Save/update report card
+        
         report_card, created  = ReportCard.objects.update_or_create(
             student_id=student,
             class_id=class_obj,
@@ -247,7 +244,7 @@ def downloadMarksheet(request, class_id, student_id):
     report = get_object_or_404(ReportCard, class_id=class_id, student_id=student_id)
     
     if report.pdf_url:
-        pdf_path = report.pdf_url.path  # Full path to file
+        pdf_path = report.pdf_url.path  
         if os.path.exists(pdf_path):
             return FileResponse(open(pdf_path, 'rb'), as_attachment=True, filename=os.path.basename(pdf_path))
         else:
