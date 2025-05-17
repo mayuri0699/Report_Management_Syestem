@@ -192,10 +192,10 @@ class SignUpSuperUserSerializer(serializers.Serializer):
 
     def validate(self, attrs):
         if UserAuth.objects.filter(email=attrs['email']).exists():
-            raise Exception('User already exist with this email address.')
+            raise Exception('User already exist with this email address.'.title())
 
         if attrs['password'] != attrs['confirm_password']:
-            raise serializers.ValidationError('password and confirm-password should be same.')
+            raise serializers.ValidationError('password and confirm-password should be same.'.title())
 
         return attrs
 
@@ -214,10 +214,13 @@ class SignUpTeacherSerializer(serializers.Serializer):
 
     def validate(self, attrs):
         if UserAuth.objects.filter(email=attrs['email']).exists():
-            raise Exception('User already exist with this email address.')
+            raise Exception('User already exist with this email address.'.title())
+        
+        if not Classes.objects.filter(id=attrs['class_id'].id).exists():
+            raise Exception('Class does not exits.'.title())
 
         if attrs['password'] != attrs['confirm_password']:
-            raise serializers.ValidationError('password and confirm-password should be same.')
+            raise serializers.ValidationError('password and confirm-password should be same.'.title())
 
         return attrs
 
