@@ -183,3 +183,51 @@ class ReportCardSerializer(serializers.ModelSerializer):
             return serializer
         except UserAuth.DoesNotExist:
             return None
+
+
+class SignUpSuperUserSerializer(serializers.Serializer):
+    email = serializers.EmailField()
+    password = serializers.CharField()
+    confirm_password = serializers.CharField()
+
+    def validate(self, attrs):
+        if UserAuth.objects.filter(email=attrs['email']).exists():
+            raise Exception('User already exist with this email address.')
+
+        if attrs['password'] != attrs['confirm_password']:
+            raise serializers.ValidationError('password and confirm-password should be same.')
+
+        return attrs
+
+    def create(self, validated_data):
+        validated_data['email'] = validated_data['email'].lower()
+        user = UserAuth.objects.create_superuser(email=validated_data['email'], password=validated_data['password'])
+        return user
+    
+
+class SignUpTeacherSerializer(serializers.Serializer):
+    email = serializers.EmailField()
+    class_id = serializers.PrimaryKeyRelatedField(queryset=Classes.objects.all(), required=False, allow_null=True)
+    name = serializers.CharField()
+    password = serializers.CharField()
+    confirm_password = serializers.CharField()
+
+    def validate(self, attrs):
+        if UserAuth.objects.filter(email=attrs['email']).exists():
+            raise Exception('User already exist with this email address.')
+
+        if attrs['password'] != attrs['confirm_password']:
+            raise serializers.ValidationError('password and confirm-password should be same.')
+
+        return attrs
+
+    def create(self, validated_data):
+        validated_data['email'] = validated_data['email'].lower()
+        validated_data.pop('confirm_password')
+        user = UserAuth.objects.create_admin(
+            email=validated_data['email'], 
+            password=validated_data['password'],
+            class_id=validated_data['class_id'],
+            name=validated_data['name']
+            )
+        return user

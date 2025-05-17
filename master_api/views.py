@@ -6,7 +6,7 @@ from django.db.models import Q
 from django.db.models import Sum, Count
 
 from master_api.models import Classes, Subject, ClassSubject, StudentMarks
-from master_api.serializers import ClassSubjectSerializer, ClassesSerializer, StudentMarksReadSerializer, StudentMarksSerializer, SubjectSerializer
+from master_api.serializers import ClassSubjectSerializer, ClassesSerializer, SignUpSuperUserSerializer, SignUpTeacherSerializer, StudentMarksReadSerializer, StudentMarksSerializer, SubjectSerializer
 from master_api import util
 
 
@@ -363,4 +363,30 @@ class StudentMarksAPIView(APIView):
             return Response(util.error(self, "Something went wrong.", str(e)))
 
 
+class SignUpSuperUserAPIView(APIView):
+        
+    def post(self, request):
+        try:
+            serializer = SignUpSuperUserSerializer(data=request.data)
+            if serializer.is_valid():
+                serializer.save()
+                return Response(util.success(self, "Superuser User create successful.".title()))
+            else:
+                return Response(util.error(self, "Validation failed.".title(), serializer.errors))
+        except Exception as e:
+            return Response(util.error(self, "Something went Wrong!", str(e)), status=400)
+        
 
+class SignUpTeacherAPIView(APIView):
+        
+    def post(self, request):
+        try:
+            serializer = SignUpTeacherSerializer(data=request.data)
+            if serializer.is_valid():
+                serializer.save()
+                return Response(util.success(self, "Teacher create successful.".title()))
+            else:
+                return Response(util.error(self, "Validation failed.".title(), serializer.errors))
+        except Exception as e:
+            return Response(util.error(self, "Something went Wrong!", str(e)), status=400)
+        
