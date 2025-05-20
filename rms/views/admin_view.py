@@ -172,6 +172,7 @@ def classsubject_list(request):
     class_subjects = ClassSubject.objects.select_related('class_id', 'subject_id').all().order_by('-id')
     return render(request, 'adminuser/classsubject_list.html', {'class_subjects': class_subjects})
 
+
 @login_required
 def classsubject_add(request):
     classes = Classes.objects.all()
@@ -189,6 +190,7 @@ def classsubject_add(request):
             return redirect('classsubject_list')
 
     return render(request, 'adminuser/classsubject_add.html', {'classes': classes, 'subjects': subjects})
+
 
 @login_required
 def classsubject_edit(request, id):
@@ -214,6 +216,7 @@ def classsubject_edit(request, id):
         'classes': classes,
         'subjects': subjects,
     })
+
 
 @login_required
 def classsubject_delete(request, id):
@@ -292,6 +295,9 @@ def studentadd(request, id):
 
     return render(request, 'adminuser/studentadd.html', {'class_obj': class_obj})
     
+
+# ---------------------------------------------------------------------------------------------------
+
 
 def calculate_grade(average):
     if average >= 90:
