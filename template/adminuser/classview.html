@@ -1,0 +1,56 @@
+{% extends "adminuser/base.html" %}
+{% load static %}
+{% block content %}
+
+<main id="main" class="main">
+  <div class="d-flex" style="justify-content: space-between;">
+    <div class="pagetitle">
+      <h1>Class</h1>
+    </div>
+    <div class="pagetitle">
+      <a class="dropdown-item" href="{% url 'classadd' %}">Add Class</a>
+    </div>
+
+  </div>
+  <!--  -->
+  
+  <!-- End Basic Modal--><!-- End Page Title -->
+
+    <section class="section">
+      <div class="row">
+        <div class="col-lg-12">
+          <div class="card">
+            <div class="card-body">
+               <!-- Table with stripped rows -->
+              <table class="table" style="margin: 0 auto; text-align: center;">
+                <thead>
+                  <tr>
+                    <th scope="col">SR no</th>
+                    <th scope="col">Class Name</th>
+                    <th scope="col">Action</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {% for i in class_obj %}
+                  <tr>
+                    <td>{{forloop.counter}}</td>
+                    <td>{{i.class_name}}</td>
+                    <td>
+                      <div class="btn-group" role="group" aria-label="Basic example">
+                        <a class="dropdown-item" href="{% url 'editclass' i.id %}">Edit</a>
+                        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                        <a class="dropdown-item" href="{% url 'deleteclass' i.id %}" onclick="return confirm('Are you sure you want to delete this class?');">Delete</a>
+                    </td>
+                  </tr>
+                  {% endfor %}
+                </tbody>
+              </table>
+              <!-- End Table with stripped rows -->
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+</main><!-- End #main -->
+  {% endblock %}
+ 

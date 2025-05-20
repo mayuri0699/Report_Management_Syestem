@@ -66,6 +66,165 @@ def admin_dashboard(request):
     return render(request,'adminuser/class.html', {'classes':classes} )
 
 
+# ---------------------------------------------------------------------------------------------------
+
+@login_required
+def classview(request):
+    class_obj = Classes.objects.all().order_by('-id')
+    return render(request, 'adminuser/classview.html', {'class_obj':class_obj})
+
+
+@login_required
+def classadd(request):
+    if request.method == 'POST':
+        class_name = request.POST.get('class_name', '').strip()
+
+        if not class_name:
+            messages.error(request, 'Class name is required.')
+        elif Classes.objects.filter(class_name__iexact=class_name).exists():
+            messages.error(request, 'Class already exists.')
+        else:
+            Classes.objects.create(class_name=class_name)
+            messages.success(request, 'Class added successfully.')
+            return redirect('classview')
+
+    return render(request, 'adminuser/classadd.html')
+
+
+@login_required
+def editclass(request, id):
+    class_instance = get_object_or_404(Classes, id=id)
+    if request.method == 'POST':
+        class_name = request.POST.get('class_name')
+        if not class_name:
+            messages.error(request, 'Class name is required.')
+        elif Classes.objects.filter(class_name__iexact=class_name).exclude(id=id).exists():
+            messages.error(request, 'Another class with this name already exists.')
+        else:
+            class_instance.class_name = class_name
+            class_instance.save()
+            messages.success(request, 'Class updated successfully.')
+            return redirect('classview')
+    return render(request, 'adminuser/classedit.html', {'class_obj': class_instance})
+
+
+@login_required
+def deleteclass(request, id):
+    class_instance = get_object_or_404(Classes, id=id)
+    class_instance.delete()
+    return redirect('classview')
+
+
+# ---------------------------------------------------------------------------------------------------
+
+@login_required
+def subjectview(request):
+    subject = Subject.objects.all().order_by('-id')
+    return render(request, 'adminuser/subjectview.html', {'subject':subject})
+
+
+@login_required
+def subjectadd(request):
+    if request.method == 'POST':
+        subject_name = request.POST.get('subject_name', '').strip()
+
+        if not subject_name:
+            messages.error(request, 'Subject name is required.')
+        elif Subject.objects.filter(name__iexact=subject_name).exists():
+            messages.error(request, 'Subject already exists.')
+        else:
+            Subject.objects.create(name=subject_name)
+            messages.success(request, 'Subject added successfully.')
+            return redirect('subjectview')
+
+    return render(request, 'adminuser/subjectadd.html')
+
+
+@login_required
+def editsubject(request, id):
+    subject = get_object_or_404(Subject, id=id)
+    if request.method == 'POST':
+        subject_name = request.POST.get('subject_name')
+        if not subject_name:
+            messages.error(request, 'Subject name is required.')
+        elif Subject.objects.filter(name__iexact=subject_name).exclude(id=id).exists():
+            messages.error(request, 'Another Subject with this name already exists.')
+        else:
+            subject.name = subject_name
+            subject.save()
+            messages.success(request, 'Subject updated successfully.')
+            return redirect('subjectview')
+    return render(request, 'adminuser/subjectedit.html', {'subject': subject})
+
+
+@login_required
+def deletesubject(request, id):
+    subject = get_object_or_404(Subject, id=id)
+    subject.delete()
+    return redirect('subjectview')
+
+
+# ---------------------------------------------------------------------------------------------------
+
+
+@login_required
+def classsubject_list(request):
+    class_subjects = ClassSubject.objects.select_related('class_id', 'subject_id').all().order_by('-id')
+    return render(request, 'adminuser/classsubject_list.html', {'class_subjects': class_subjects})
+
+@login_required
+def classsubject_add(request):
+    classes = Classes.objects.all()
+    subjects = Subject.objects.all()
+
+    if request.method == 'POST':
+        class_id = request.POST.get('class_id')
+        subject_id = request.POST.get('subject_id')
+
+        if ClassSubject.objects.filter(class_id=class_id, subject_id=subject_id).exists():
+            messages.error(request, 'This class-subject combination already exists.')
+        else:
+            ClassSubject.objects.create(class_id_id=class_id, subject_id_id=subject_id)
+            messages.success(request, 'Class subject added successfully.')
+            return redirect('classsubject_list')
+
+    return render(request, 'adminuser/classsubject_add.html', {'classes': classes, 'subjects': subjects})
+
+@login_required
+def classsubject_edit(request, id):
+    classsubject = get_object_or_404(ClassSubject, id=id)
+    classes = Classes.objects.all()
+    subjects = Subject.objects.all()
+
+    if request.method == 'POST':
+        class_id = request.POST.get('class_id')
+        subject_id = request.POST.get('subject_id')
+
+        if ClassSubject.objects.exclude(id=id).filter(class_id=class_id, subject_id=subject_id).exists():
+            messages.error(request, 'This combination already exists.')
+        else:
+            classsubject.class_id_id = class_id
+            classsubject.subject_id_id = subject_id
+            classsubject.save()
+            messages.success(request, 'Class subject updated successfully.')
+            return redirect('classsubject_list')
+
+    return render(request, 'adminuser/classsubject_edit.html', {
+        'classsubject': classsubject,
+        'classes': classes,
+        'subjects': subjects,
+    })
+
+@login_required
+def classsubject_delete(request, id):
+    classsubject = get_object_or_404(ClassSubject, id=id)
+    classsubject.delete()
+    return redirect('classsubject_list')
+
+
+# ---------------------------------------------------------------------------------------------------
+
+
 @login_required
 def studentsview(request, id):
     class_obj = Classes.objects.get(id=id)
@@ -207,11 +366,12 @@ def studentmarkadd(request, id):
                 'overall_grade': grade
             }
         )
+        updated_marks_qs = StudentMarks.objects.filter(student_id=student)
 
         html_string = render_to_string('adminuser/report_card.html', {
         'student': student,
         'class_obj': class_obj,
-        'marks_qs': existing_marks_qs,
+        'marks_qs': updated_marks_qs,
         'total': total,
         'total_max': total_max,
         'percentage': percentage,
