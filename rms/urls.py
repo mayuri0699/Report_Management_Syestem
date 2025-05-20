@@ -5,6 +5,10 @@ from rms.views import student_view
 urlpatterns = [
 # Admin Dashboard
     path('',admin_view.userlogin, name='login'),
+    # Reset Password 
+    path('verifyemail/',admin_view.verifyemail,name='verifyemail'),
+    path('resetpassword/',admin_view.resetpassword,name='resetpassword'),
+
     path('logout',admin_view.logout,name='logout'),
     path('dashboard',admin_view.admin_dashboard, name='admin_dashboard'), 
 

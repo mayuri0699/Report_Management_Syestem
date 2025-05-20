@@ -17,6 +17,8 @@ from django.db.models.functions import Coalesce
 from django.http import FileResponse, Http404
 from django.shortcuts import get_object_or_404, redirect, render
 from django.template.loader import render_to_string
+from django.contrib.auth.hashers import make_password
+
 
 # Local App Imports
 from master_api.models import (
@@ -53,6 +55,49 @@ def userlogin(request):
     return render(request, 'common/login.html')
 
 
+def verifyemail(request):
+    if request.method == 'POST':
+        email = request.POST.get('email', '').lower()
+        try:
+            user = UserAuth.objects.get(email=email)
+            request.session['reset_email'] = email  # Store email in session
+            return redirect('resetpassword')
+        except UserAuth.DoesNotExist:
+            messages.error(request, 'Email not found. Please try again.')
+            return redirect('verifyemail')
+    return render(request, 'common/verifyemail.html')    
+
+
+def resetpassword(request):
+    email = request.session.get('reset_email')
+    if not email:
+        messages.error(request, "Unauthorized access.")
+        return redirect('verifyemail')
+
+    if request.method == 'POST':
+        password = request.POST.get('password')
+        confirm_password = request.POST.get('confirm_password')
+
+        if password != confirm_password:
+            messages.error(request, "Passwords do not match.")
+            return redirect('resetpassword')
+
+        try:
+            user = UserAuth.objects.get(email=email)
+            user.password = make_password(password)
+            user.save()
+            messages.success(request, "Password reset successfully.")
+            request.session.pop('reset_email', None)
+            return redirect('login')
+        except UserAuth.DoesNotExist:
+            messages.error(request, "Something went wrong. Try again.")
+            return redirect('verifyemail')
+
+    return render(request, 'common/resetpassword.html')
+
+
+# ---------------------------------------------------------------------------------------------------
+
 @login_required
 def logout(request):
     user = request.user
@@ -64,6 +109,76 @@ def logout(request):
 def admin_dashboard(request):
     classes = Classes.objects.all()
     return render(request,'adminuser/class.html', {'classes':classes} )
+
+
+# ---------------------------------------------------------------------------------------------------
+
+@login_required
+def studentsview(request, id):
+    class_obj = Classes.objects.get(id=id)
+    students = UserAuth.objects.filter(class_id=class_obj, is_superuser=False, is_active=True, is_staff=False, is_admin=False)
+    
+    return render(request, 'adminuser/studentsview.html', {'students':students, 'class_obj':class_obj})
+
+
+def studentadd(request, id):
+    class_obj = Classes.objects.get(id=id)
+
+    if request.method == 'POST':
+        name = request.POST.get('name')
+        email = request.POST.get('email')
+        roll_number = request.POST.get('roll_number')
+
+        try:
+            UserAuth.objects.create_user(
+                class_id=class_obj,
+                name=name,
+                email=email,
+                roll_number=roll_number,
+                password='defaultpassword'
+            )
+            messages.success(request, "Student added successfully.")
+        except IntegrityError:
+            messages.error(request, "Email or Roll Number already exists.")
+
+        return redirect('studentadd', id=id)
+
+    return render(request, 'adminuser/studentadd.html', {'class_obj': class_obj})
+    
+
+@login_required
+def editstudent(request, class_id, student_id):
+    class_obj = get_object_or_404(Classes, id=class_id)
+    student = get_object_or_404(UserAuth, id=student_id, class_id=class_obj)
+
+    if request.method == 'POST':
+        name = request.POST.get('name')
+        email = request.POST.get('email')
+        roll_number = request.POST.get('roll_number')
+
+        if UserAuth.objects.exclude(id=student.id).filter(email=email).exists():
+            messages.error(request, "Email already exists.")
+        elif UserAuth.objects.exclude(id=student.id).filter(roll_number=roll_number).exists():
+            messages.error(request, "Roll Number already exists.")
+        else:
+            student.name = name
+            student.email = email
+            student.roll_number = roll_number
+            student.save()
+            messages.success(request, "Student updated successfully.")
+            return redirect('studentsview', id=class_id)
+
+    return render(request, 'adminuser/editstudent.html', {
+        'student': student,
+        'class_obj': class_obj
+    })
+
+
+def deletestudent(request, id):
+    student = get_object_or_404(UserAuth, id=id)
+    student.delete()
+    messages.success(request, "Student deleted successfully.")
+    return redirect('studentsview', id=student.class_id.id) 
 
 
 # ---------------------------------------------------------------------------------------------------
@@ -166,7 +281,6 @@ def deletesubject(request, id):
 
 # ---------------------------------------------------------------------------------------------------
 
-
 @login_required
 def classsubject_list(request):
     class_subjects = ClassSubject.objects.select_related('class_id', 'subject_id').all().order_by('-id')
@@ -226,78 +340,6 @@ def classsubject_delete(request, id):
 
 
 # ---------------------------------------------------------------------------------------------------
-
-
-@login_required
-def studentsview(request, id):
-    class_obj = Classes.objects.get(id=id)
-    students = UserAuth.objects.filter(class_id=class_obj, is_superuser=False, is_active=True, is_staff=False, is_admin=False)
-    
-    return render(request, 'adminuser/studentsview.html', {'students':students, 'class_obj':class_obj})
-
-
-def deletestudent(request, id):
-    student = get_object_or_404(UserAuth, id=id)
-    student.delete()
-    messages.success(request, "Student deleted successfully.")
-    return redirect('studentsview', id=student.class_id.id) 
-
-
-@login_required
-def editstudent(request, class_id, student_id):
-    class_obj = get_object_or_404(Classes, id=class_id)
-    student = get_object_or_404(UserAuth, id=student_id, class_id=class_obj)
-
-    if request.method == 'POST':
-        name = request.POST.get('name')
-        email = request.POST.get('email')
-        roll_number = request.POST.get('roll_number')
-
-        if UserAuth.objects.exclude(id=student.id).filter(email=email).exists():
-            messages.error(request, "Email already exists.")
-        elif UserAuth.objects.exclude(id=student.id).filter(roll_number=roll_number).exists():
-            messages.error(request, "Roll Number already exists.")
-        else:
-            student.name = name
-            student.email = email
-            student.roll_number = roll_number
-            student.save()
-            messages.success(request, "Student updated successfully.")
-            return redirect('studentsview', id=class_id)
-
-    return render(request, 'adminuser/editstudent.html', {
-        'student': student,
-        'class_obj': class_obj
-    })
-
-
-def studentadd(request, id):
-    class_obj = Classes.objects.get(id=id)
-
-    if request.method == 'POST':
-        name = request.POST.get('name')
-        email = request.POST.get('email')
-        roll_number = request.POST.get('roll_number')
-
-        try:
-            UserAuth.objects.create_user(
-                class_id=class_obj,
-                name=name,
-                email=email,
-                roll_number=roll_number,
-                password='defaultpassword'
-            )
-            messages.success(request, "Student added successfully.")
-        except IntegrityError:
-            messages.error(request, "Email or Roll Number already exists.")
-
-        return redirect('studentadd', id=id)
-
-    return render(request, 'adminuser/studentadd.html', {'class_obj': class_obj})
-    
-
-# ---------------------------------------------------------------------------------------------------
-
 
 def calculate_grade(average):
     if average >= 90:
