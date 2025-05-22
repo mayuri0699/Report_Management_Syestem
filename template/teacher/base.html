@@ -48,7 +48,7 @@
   <header id="header" class="header fixed-top d-flex align-items-center">
 
     <div class="d-flex align-items-center justify-content-between">
-      <a href="{% url 'admin_dashboard' %}" class="logo d-flex align-items-center">
+      <a href="{% url 'teacher_dashboard' %}" class="logo d-flex align-items-center">
         <img src="{% static 'assets/img/logo.png' %}" alt="">
         <span class="d-none d-lg-block">Report Management System</span>
       </a>
@@ -83,18 +83,18 @@
 
     <ul class="sidebar-nav" id="sidebar-nav">
       <li class="nav-item">
-        <a class="nav-link text-dark" href="{% url 'admin_dashboard' %}">
+        <a class="nav-link text-dark" href="{% url 'teacher_dashboard' %}">
+          <i class="bi bi-menu-button-wide"></i>
+          <span>Dashboard</span>
+        </a>
+      </li>
+
+      <li class="nav-item">
+        <a class="nav-link text-dark" href="{% url 'student_view' %}">
           <i class="bi bi-menu-button-wide"></i>
           <span>Students Section</span>
         </a>
       </li>
-
-      <!-- <li class="nav-item">
-        <a class="nav-link text-dark" href="{% url 'admin_dashboard' %}">
-          <i class="bi bi-menu-button-wide"></i>
-          <span>Teacher Section</span>
-        </a>
-      </li> -->
 
     </ul>
 

@@ -14,7 +14,6 @@ def student_dashboard(request):
 
 @login_required
 def student_marks(request):
-    # Fetch the logged-in user's student marks
     student_marks = StudentMarks.objects.filter(student_id=request.user).select_related('class_id', 'subject_id')
     student = UserAuth.objects.get(id = request.user.id)
     data = {

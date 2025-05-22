@@ -46,6 +46,10 @@ def userlogin(request):
                 login(request,user)
                 return redirect('admin_dashboard')
             
+            elif userauth.is_superuser ==False and userauth.is_active == True and userauth.is_staff == True and userauth.is_admin == True:
+                login(request,user)
+                return redirect('teacher_dashboard')
+            
             elif userauth.is_superuser ==False and userauth.is_active == True and userauth.is_staff == False and userauth.is_admin == False:
                 login(request,user)
                 return redirect('student_dashboard')
@@ -96,7 +100,7 @@ def resetpassword(request):
     return render(request, 'common/resetpassword.html')
 
 
-# ---------------------------------------------------------------------------------------------------
+# ----------------------------------------  Admin Dashboard     --------------------------------------------------------
 
 @login_required
 def logout(request):
@@ -111,7 +115,7 @@ def admin_dashboard(request):
     return render(request,'adminuser/class.html', {'classes':classes} )
 
 
-# ---------------------------------------------------------------------------------------------------
+# ---------------------------------------   Student View    -----------------------------------------------------------
 
 @login_required
 def studentsview(request, id):
@@ -177,11 +181,79 @@ def editstudent(request, class_id, student_id):
 def deletestudent(request, id):
     student = get_object_or_404(UserAuth, id=id)
     student.delete()
-    messages.success(request, "Student deleted successfully.")
     return redirect('studentsview', id=student.class_id.id) 
 
 
-# ---------------------------------------------------------------------------------------------------
+# ---------------------------------------   Student View    -----------------------------------------------------------
+
+@login_required
+def teacher_class(request):
+    classes = Classes.objects.all()
+    return render(request,'adminuser/teacherclass.html', {'classes':classes} )
+
+
+@login_required
+def teacherlist(request, class_id):
+    class_obj = Classes.objects.get(id=class_id)
+    teachers = UserAuth.objects.filter(class_id=class_obj, is_superuser=False, is_active=True, is_staff=True, is_admin=True)
+    
+    return render(request, 'adminuser/teachersview.html', {'teachers':teachers, 'class_obj':class_obj})
+
+
+def teacheradd(request, class_id):
+    class_obj = Classes.objects.get(id=class_id)
+
+    if request.method == 'POST':
+        name = request.POST.get('name')
+        email = request.POST.get('email')
+
+        try:
+            UserAuth.objects.create_admin(
+                class_id=class_obj,
+                name=name,
+                email=email,
+                password='defaultpassword'
+            )
+            messages.success(request, "Teacher added successfully.")
+        except IntegrityError:
+            messages.error(request, "Email already exists.")
+
+        return redirect('teacher_add', class_id=class_id)
+
+    return render(request, 'adminuser/teacheradd.html', {'class_obj': class_obj})
+    
+
+@login_required
+def teacheredit(request, class_id, teacher_id):
+    class_obj = get_object_or_404(Classes, id=class_id)
+    teacher = get_object_or_404(UserAuth, id=teacher_id, class_id=class_obj)
+
+    if request.method == 'POST':
+        name = request.POST.get('name')
+        email = request.POST.get('email')
+
+        if UserAuth.objects.exclude(id=teacher.id).filter(email=email).exists():
+            messages.error(request, "Email already exists.")
+        else:
+            teacher.name = name
+            teacher.email = email
+            teacher.save()
+            messages.success(request, "Teacher updated successfully.")
+            return redirect('teacher_list', class_id=class_id)
+
+    return render(request, 'adminuser/teacheredit.html', {
+        'teacher': teacher,
+        'class_obj': class_obj
+    })
+
+
+def deleteteacher(request, teacher_id):
+    teacher = get_object_or_404(UserAuth, id=teacher_id)
+    teacher.delete()
+    return redirect('teacher_list', class_id=teacher.class_id.id) 
+
+
+# ----------------------------------------- Class View  ---------------------------------------------------------
 
 @login_required
 def classview(request):
@@ -230,7 +302,7 @@ def deleteclass(request, id):
     return redirect('classview')
 
 
-# ---------------------------------------------------------------------------------------------------
+# ----------------------------------------  Subject View    ----------------------------------------------------------
 
 @login_required
 def subjectview(request):
@@ -279,7 +351,7 @@ def deletesubject(request, id):
     return redirect('subjectview')
 
 
-# ---------------------------------------------------------------------------------------------------
+# ------------------------------------------    Class Subject View  --------------------------------------------------------
 
 @login_required
 def classsubject_list(request):
@@ -339,7 +411,7 @@ def classsubject_delete(request, id):
     return redirect('classsubject_list')
 
 
-# ---------------------------------------------------------------------------------------------------
+# ------------------------------------------ Marks and Generate Marksheet   --------------------------------------------------------
 
 def calculate_grade(average):
     if average >= 90:
@@ -459,5 +531,4 @@ def downloadMarksheet(request, class_id, student_id):
             raise Http404("PDF file not found.")
     else:
         raise Http404("Report card PDF not available.")
-
 

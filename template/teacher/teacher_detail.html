@@ -1,0 +1,45 @@
+{% extends "teacher/base.html" %}
+{% load static %}
+{% block content %}
+
+<main id="main" class="main">
+
+  <div class="d-flex" style="justify-content: space-between;">
+    <div class="pagetitle">
+      <h1>Teacher Details</h1>
+    </div>
+  </div>
+
+  <section class="section">
+    <div class="row">
+      <div class="col-lg-6 offset-lg-3">
+        <div class="card">
+          <div class="card-body pt-4">
+            <h5 class="card-title">Details of {{ teacher.name }}</h5>
+
+            <form>
+              <div class="mb-3">
+                <label class="form-label">Name</label>
+                <input type="text" class="form-control" value="{{ teacher.name }}" readonly>
+              </div>
+
+              <div class="mb-3">
+                <label class="form-label">Email</label>
+                <input type="email" class="form-control" value="{{ teacher.email }}" readonly>
+              </div>
+
+              <div class="mb-3">
+                <label class="form-label">Class Name</label>
+                <input type="text" class="form-control" value="{{ teacher.class_id.class_name }}" readonly>
+              </div>
+
+            </form>
+
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+</main>
+
+{% endblock %}
